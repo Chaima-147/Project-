@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Carte Trello</title>
+<style>
+  :root{
+    --ink:#3a2436;
+    --muted:#a3819e;
+    --surface:#ffffff;
+    --bg:#fbe8f3;
+    --line:#f6dcec;
+    --blue:#e8579d;
+    --blue-soft:#fdeaf4;
+    --green:#c78ce0;
+    --yellow:#f6b6d2;
+    --red:#e8579d;
+    --purple:#a06fd1;
+    --radius:12px;
+    font-family: "Inter","Segoe UI",system-ui,sans-serif;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 15% 20%, #f0f2f7 0%, transparent 45%),
+      var(--bg);
+    padding:40px 20px;
+  }
+
+  .card{
+    width:300px;
+    background:var(--surface);
+    border-radius:var(--radius);
+    box-shadow:
+      0 1px 1px rgba(9,30,66,.08),
+      0 4px 14px rgba(9,30,66,.10);
+    overflow:hidden;
+    cursor:pointer;
+    transition: transform .18s ease, box-shadow .18s ease;
+    border:1px solid var(--line);
+  }
+
+  .card:hover{
+    transform: translateY(-3px);
+    box-shadow:
+      0 2px 4px rgba(9,30,66,.10),
+      0 10px 24px rgba(9,30,66,.16);
+  }
+
+  .cover{
+    height:110px;
+    background:
+      linear-gradient(135deg, rgba(232,87,157,.85), rgba(160,111,209,.75)),
+      repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 12px, transparent 12px 24px);
+    position:relative;
+  }
+
+  .cover-icon{
+    position:absolute;
+    bottom:10px;
+    right:12px;
+    width:30px;height:30px;
+    border-radius:8px;
+    background:rgba(255,255,255,.22);
+    backdrop-filter:blur(2px);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;
+    font-size:14px;
+  }
+
+  .body{ padding:12px 12px 14px; }
+
+  .labels{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+    flex-wrap:wrap;
+  }
+
+  .label{
+    height:8px;
+    width:34px;
+    border-radius:5px;
+    position:relative;
+  }
+  .label.expand{ width:auto; height:auto; padding:2px 8px; font-size:11px; font-weight:600; color:#08351f; }
+
+  .label.green{ background:var(--green); }
+  .label.yellow{ background:var(--yellow); }
+  .label.purple{ background:var(--purple); }
+
+  .title{
+    font-size:15px;
+    font-weight:600;
+    color:var(--ink);
+    line-height:1.35;
+    margin:0 0 10px;
+  }
+
+  .meta-row{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:10px;
+  }
+
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    background:#f4f5f7;
+    border-radius:6px;
+    padding:3px 7px;
+  }
+
+  .chip.due{
+    color:#a03d78;
+    background:#fbdcec;
+  }
+  .chip.due.urgent{
+    color:#9b1c5c;
+    background:#fbd0e4;
+  }
+
+  .progress-wrap{ margin-bottom:12px; }
+
+  .progress-track{
+    height:6px;
+    border-radius:4px;
+    background:#f0f1f3;
+    overflow:hidden;
+  }
+
+  .progress-fill{
+    height:100%;
+    width:62%;
+    border-radius:4px;
+    background:linear-gradient(90deg,var(--blue),var(--purple));
+  }
+
+  .footer{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .icon-group{
+    display:flex;
+    gap:10px;
+  }
+
+  .icon-item{
+    display:flex;
+    align-items:center;
+    gap:3px;
+    font-size:11.5px;
+    color:var(--muted);
+    font-weight:600;
+  }
+
+  .avatars{
+    display:flex;
+  }
+
+  .avatar{
+    width:26px;height:26px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;
+    font-weight:700;
+    color:#fff;
+    border:2px solid var(--surface);
+    margin-left:-8px;
+  }
+  .avatar:first-child{ margin-left:0; }
+  .a1{ background:#e8579d; }
+  .a2{ background:#a06fd1; }
+  .a3{ background:#c78ce0; }
+
+  svg{ display:block; }
+</style>
+</head>
+<body>
+
+  <div class="card" role="button" tabindex="0" aria-label="Carte Trello : Finaliser la maquette du dashboard">
+    <div class="cover">
+      <div class="cover-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="18" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="10" rx="1.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="labels">
+        <span class="label green"></span>
+        <span class="label yellow"></span>
+        <span class="label purple"></span>
+      </div>
+
+      <p class="title">Finaliser la maquette du dashboard client</p>
+
+      <div class="meta-row">
+        <span class="chip due">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+          </svg>
+          14 juil.
+        </span>
+        <span class="chip">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M14 3l7 7-9 9H5v-7z"/>
+          </svg>
+          Design
+        </span>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill"></div></div>
+      </div>
+
+      <div class="footer">
+        <div class="icon-group">
+          <span class="icon-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+              <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            5/8
+          </span>
+          <span class="icon-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            3
+          </span>
+          <span class="icon-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+            2
+          </span>
+        </div>
+
+        <div class="avatars">
+          <div class="avatar a1">JM</div>
+          <div class="avatar a2">SL</div>
+          <div class="avatar a3">+2</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
