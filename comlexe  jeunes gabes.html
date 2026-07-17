@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complexe Jeunes Gabès</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:#0a0a0f;color:#e2e8f0;overflow-x:hidden}
+        .font-serif{font-family:'Instrument Serif',serif}
+        :root{
+            --bg:#0a0a0f;--bg-card:rgba(16,16,24,0.85);
+            --neon:#00E5A0;--neon-dim:#00B87D;--neon-glow:rgba(0,229,160,0.15);
+            --accent:#FFB800;--accent-dim:#CC9300;
+            --surface:#14141e;--surface-light:#1c1c2a;
+            --border:rgba(255,255,255,0.06);--border-neon:rgba(0,229,160,0.15);
+            --text:#e2e8f0;--text-dim:#94a3b8;--text-muted:#475569;
+        }
+        #bg3d{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+        .glass-dark{background:var(--bg-card);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);box-shadow:0 4px 32px rgba(0,0,0,0.4)}
+        .left-panel{background:linear-gradient(170deg,rgba(0,229,160,0.06) 0%,transparent 40%,rgba(255,184,0,0.03) 100%);position:relative}
+        .left-panel::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse 600px 500px at 20% 80%,rgba(0,229,160,0.06) 0%,transparent 70%),radial-gradient(ellipse 400px 400px at 80% 20%,rgba(255,184,0,0.04) 0%,transparent 60%);pointer-events:none}
+        .fade-up{opacity:0;transform:translateY(24px);transition:all 0.8s cubic-bezier(0.16,1,0.3,1)}
+        .fade-up.visible{opacity:1;transform:translateY(0)}
+        .fade-up-d1{transition-delay:.1s}.fade-up-d2{transition-delay:.2s}
+        .fade-up-d3{transition-delay:.3s}.fade-up-d4{transition-delay:.4s}
+        .fade-up-d5{transition-delay:.5s}
+        .scroll-dark::-webkit-scrollbar{width:3px}
+        .scroll-dark::-webkit-scrollbar-track{background:transparent}
+        .scroll-dark::-webkit-scrollbar-thumb{background:#1c1c2a;border-radius:10px}
+        .feature-icon{transition:all .4s cubic-bezier(0.16,1,0.3,1)}
+        .feature-card:hover .feature-icon{transform:scale(1.1) rotate(-3deg)}
+        .input-dark{background:var(--surface);border:1px solid var(--border);transition:all .3s ease;color:var(--text)}
+        .input-dark:focus{background:var(--surface-light);border-color:var(--neon-dim);box-shadow:0 0 0 3px var(--neon-glow)}
+        .input-dark::placeholder{color:var(--text-muted)}
+        .neon-tag{background:rgba(0,229,160,0.06);border:1px solid rgba(0,229,160,0.12);color:var(--neon);transition:all .3s ease}
+        .neon-tag:hover{background:rgba(0,229,160,0.12);border-color:rgba(0,229,160,0.25);box-shadow:0 0 20px rgba(0,229,160,0.08)}
+        .logo-wrap{transition:all .4s cubic-bezier(0.16,1,0.3,1)}
+        .logo-wrap:hover{transform:rotate(-5deg) scale(1.03)}
+        .btn-neon{background:linear-gradient(135deg,var(--neon),var(--neon-dim));color:#0a0a0f;font-weight:700;transition:all .3s ease;box-shadow:0 4px 24px rgba(0,229,160,0.2)}
+        .btn-neon:hover{box-shadow:0 8px 36px rgba(0,229,160,0.3);transform:translateY(-1px)}
+        .sep-line{display:flex;align-items:center;gap:12px;color:var(--text-muted)}
+        .sep-line::before,.sep-line::after{content:'';flex:1;height:1px;background:var(--border)}
+        .stat-glow{background:linear-gradient(135deg,var(--neon),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .bot-toggle{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--neon),#00B87D);box-shadow:0 6px 28px rgba(0,229,160,0.3);transition:all .4s cubic-bezier(0.16,1,0.3,1);cursor:pointer;border:none;position:relative}
+        .bot-toggle:hover{transform:scale(1.08);box-shadow:0 8px 36px rgba(0,229,160,0.4)}
+        .bot-toggle.active{transform:scale(.92) rotate(90deg);background:linear-gradient(135deg,#00B87D,var(--neon))}
+        .bot-toggle .badge{position:absolute;top:-2px;right:-2px;width:18px;height:18px;background:#0a0a0f;color:var(--neon);font-size:10px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--neon);transition:all .3s ease}
+        .bot-toggle.active .badge{opacity:0;transform:scale(0)}
+        .bot-panel{position:fixed;bottom:80px;right:20px;width:370px;max-height:540px;border-radius:20px;background:rgba(14,14,20,0.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border-neon);box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 40px rgba(0,229,160,0.05);display:flex;flex-direction:column;overflow:hidden;transform:scale(.9) translateY(20px);opacity:0;pointer-events:none;transition:all .4s cubic-bezier(0.16,1,0.3,1);z-index:100}
+        .bot-panel.open{transform:scale(1) translateY(0);opacity:1;pointer-events:auto}
+        @media(max-width:440px){.bot-panel{right:0;left:0;bottom:0;width:100%;max-height:100vh;border-radius:20px 20px 0 0}}
+        .bot-msg-bot{background:var(--surface-light);border:1px solid var(--border)}
+        .bot-msg-user{background:linear-gradient(135deg,var(--neon),#00B87D);color:#0a0a0f}
+        .bot-sug{background:var(--surface);border:1px solid var(--border);color:var(--text-dim);transition:all .25s ease;cursor:pointer}
+        .bot-sug:hover{background:var(--surface-light);border-color:var(--neon-dim);color:var(--neon);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,229,160,0.06)}
+        .chat-message{animation:slideIn .4s cubic-bezier(0.16,1,0.3,1)}
+        @keyframes slideIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+        .pulse-online{animation:pulseOn 2s ease-in-out infinite}
+        @keyframes pulseOn{0%,100%{box-shadow:0 0 0 0 rgba(0,229,160,.5)}50%{box-shadow:0 0 0 6px rgba(0,229,160,0)}}
+        .typing-dot{animation:tb 1.4s infinite ease-in-out}
+        .typing-dot:nth-child(1){animation-delay:0s}.typing-dot:nth-child(2){animation-delay:.2s}.typing-dot:nth-child(3){animation-delay:.4s}
+        @keyframes tb{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+        .btn-facebook{background:#1877F2;color:white;transition:all .3s ease}
+        .btn-facebook:hover{background:#166FE5;transform:translateY(-1px);box-shadow:0 4px 16px rgba(24,119,242,0.3)}
+    </style>
+</head>
+<body>
+
+<canvas id="bg3d"></canvas>
+
+<div class="relative z-10 flex min-h-screen">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel hidden lg:flex flex-col justify-between w-[58%] p-12 xl:p-16 relative">
+        <div class="relative z-10">
+            <div class="fade-up flex items-center gap-3 logo-wrap mb-16 cursor-pointer">
+                <svg width="48" height="48" viewBox="0 0 120 120" fill="none">
+                    <rect width="120" height="120" rx="28" fill="rgba(0,229,160,0.1)" stroke="rgba(0,229,160,0.3)" stroke-width="2"/>
+                    <path d="M32 30 h36 a22 22 0 0 1 0 44 h-36" stroke="#00E5A0" stroke-width="7" stroke-linecap="round" fill="none"/>
+                    <path d="M50 74 h30" stroke="#00E5A0" stroke-width="7" stroke-linecap="round"/>
+                    <path d="M68 30 v16 a8 8 0 0 1 -8 8 h-12" stroke="#FFB800" stroke-width="5" stroke-linecap="round" fill="none"/>
+                    <circle cx="88" cy="88" r="6" fill="#00E5A0" opacity="0.7"/><circle cx="88" cy="88" r="3" fill="#0a0a0f"/>
+                </svg>
+                <div>
+                    <div class="font-semibold text-lg tracking-tight leading-tight text-white">Complexe Jeunes</div>
+                    <div class="text-sm font-medium tracking-wider" style="color:var(--neon);opacity:0.7">GABÈS</div>
+                </div>
+            </div>
+
+            <h1 class="fade-up fade-up-d1 text-white text-4xl xl:text-5xl 2xl:text-6xl font-bold leading-[1.05] tracking-tight mb-6">
+                L'espace de travail<br>
+                <span class="font-serif italic font-normal" style="color:var(--neon)">de vos clubs,</span><br>
+                sous un même toit.
+            </h1>
+
+            <p class="fade-up fade-up-d2 text-lg xl:text-xl font-light leading-relaxed max-w-lg mb-8" style="color:var(--text-dim)">
+                Un lieu unique où sport, savoir et création se croisent. Le Complexe Jeunes Gabès rassemble des passionnés autour d'activités variées — du vélo aux échecs, du code au lancer rapide — dans un espace conçu pour l'échange et la progression.
+            </p>
+
+            <div class="fade-up fade-up-d3 flex flex-wrap gap-2.5 mb-10">
+                <span class="neon-tag inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"><span class="w-2 h-2 bg-amber-400 rounded-full"></span>Cyclisme</span>
+                <span class="neon-tag inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"><span class="w-2 h-2 bg-violet-400 rounded-full"></span>Échecs</span>
+                <span class="neon-tag inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"><span class="w-2 h-2 bg-cyan-400 rounded-full"></span>Dev Web</span>
+                <span class="neon-tag inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"><span class="w-2 h-2 bg-rose-400 rounded-full"></span>Balle Rapide</span>
+            </div>
+
+            <div class="fade-up fade-up-d4 flex items-center gap-8">
+                <div><div class="stat-glow text-3xl font-bold">128</div><div class="text-xs uppercase tracking-wider mt-0.5" style="color:var(--text-muted)">Membres</div></div>
+                <div class="w-px h-10" style="background:var(--border)"></div>
+                <div><div class="stat-glow text-3xl font-bold">4</div><div class="text-xs uppercase tracking-wider mt-0.5" style="color:var(--text-muted)">Clubs</div></div>
+                <div class="w-px h-10" style="background:var(--border)"></div>
+                <div><div class="stat-glow text-3xl font-bold">12</div><div class="text-xs uppercase tracking-wider mt-0.5" style="color:var(--text-muted)">En ligne</div></div>
+            </div>
+        </div>
+
+        <div class="relative z-10 fade-up fade-up-d5">
+            <a href="#" class="btn-facebook inline-flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-semibold">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                Suivez-nous sur Facebook
+            </a>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="w-full lg:w-[42%] flex flex-col relative z-10" style="background:rgba(10,10,15,0.92);backdrop-filter:blur(12px);border-left:1px solid var(--border)">
+
+        <!-- Mobile header -->
+        <div class="lg:hidden p-5" style="border-bottom:1px solid var(--border)">
+            <div class="flex items-center gap-3">
+                <svg width="36" height="36" viewBox="0 0 120 120" fill="none">
+                    <rect width="120" height="120" rx="28" fill="rgba(0,229,160,0.15)"/>
+                    <path d="M32 30 h36 a22 22 0 0 1 0 44 h-36" stroke="#00E5A0" stroke-width="7" stroke-linecap="round" fill="none"/>
+                    <path d="M50 74 h30" stroke="#00E5A0" stroke-width="7" stroke-linecap="round"/>
+                    <path d="M68 30 v16 a8 8 0 0 1 -8 8 h-12" stroke="#FFB800" stroke-width="5" stroke-linecap="round" fill="none"/>
+                    <circle cx="88" cy="88" r="6" fill="#00E5A0" opacity="0.7"/><circle cx="88" cy="88" r="3" fill="#0a0a0f"/>
+                </svg>
+                <div>
+                    <div class="font-semibold text-sm text-white">Complexe Jeunes</div>
+                    <div style="color:var(--neon);opacity:0.7" class="text-xs">GABÈS</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login -->
+        <div class="p-8 lg:p-10 xl:p-12 flex-shrink-0">
+            <div class="fade-up mb-8">
+                <h2 class="text-2xl font-bold text-white tracking-tight mb-1">Bienvenue</h2>
+                <p class="text-sm font-light" style="color:var(--text-muted)">Connectez-vous pour rejoindre la communauté</p>
+            </div>
+            <div class="fade-up fade-up-d1 space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider mb-1.5" style="color:var(--text-dim)">Email</label>
+                    <input type="email" placeholder="votre@email.com" class="input-dark w-full px-4 py-3 rounded-xl text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider mb-1.5" style="color:var(--text-dim)">Mot de passe</label>
+                    <input type="password" placeholder="••••••••" class="input-dark w-full px-4 py-3 rounded-xl text-sm outline-none">
+                </div>
+            </div>
+            <div class="fade-up fade-up-d2 flex items-center justify-between mb-6">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" class="w-4 h-4 rounded" style="border-color:var(--border);background:var(--surface)">
+                    <span class="text-xs" style="color:var(--text-muted)">Se souvenir de moi</span>
+                </label>
+                <a href="#" class="text-xs font-semibold hover:opacity-80 transition-opacity" style="color:var(--neon)">Mot de passe oublié ?</a>
+            </div>
+            <button class="fade-up fade-up-d3 btn-neon w-full text-sm py-3.5 rounded-xl">Se connecter</button>
+            <div class="fade-up fade-up-d4 sep-line my-6 text-xs">ou</div>
+            <button class="fade-up fade-up-d4 btn-facebook w-full flex items-center justify-center gap-3 py-3 rounded-xl text-sm font-semibold mb-6">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                Continuer avec Facebook
+            </button>
+            <p class="fade-up fade-up-d5 text-center text-xs" style="color:var(--text-muted)">
+                Pas encore membre ? <a href="#" class="font-semibold" style="color:var(--neon)">Créer un compte</a>
+            </p>
+        </div>
+
+        <div class="px-8 lg:px-10 xl:px-12"><div style="border-top:1px solid var(--border)"></div></div>
+
+        <!-- Clubs -->
+        <div class="p-8 lg:p-10 xl:p-12">
+            <div class="fade-up text-xs font-bold uppercase tracking-widest mb-5" style="color:var(--text-muted)">Nos clubs</div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="fade-up feature-card glass-dark rounded-xl p-4 hover:border-amber-500/20 transition-all duration-500 cursor-pointer">
+                    <div class="feature-icon w-9 h-9 rounded-lg flex items-center justify-center mb-3" style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15)"><i data-lucide="bike" class="w-4 h-4 text-amber-400"></i></div>
+                    <div class="text-sm font-semibold text-white">Cyclisme</div>
+                    <div class="text-[11px]" style="color:var(--text-muted)">34 membres</div>
+                </div>
+                <div class="fade-up fade-up-d1 feature-card glass-dark rounded-xl p-4 hover:border-violet-500/20 transition-all duration-500 cursor-pointer">
+                    <div class="feature-icon w-9 h-9 rounded-lg flex items-center justify-center mb-3" style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.15)"><i data-lucide="crown" class="w-4 h-4 text-violet-400"></i></div>
+                    <div class="text-sm font-semibold text-white">Échecs</div>
+                    <div class="text-[11px]" style="color:var(--text-muted)">28 membres</div>
+                </div>
+                <div class="fade-up fade-up-d2 feature-card glass-dark rounded-xl p-4 hover:border-cyan-500/20 transition-all duration-500 cursor-pointer">
+                    <div class="feature-icon w-9 h-9 rounded-lg flex items-center justify-center mb-3" style="background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.15)"><i data-lucide="code-2" class="w-4 h-4 text-cyan-400"></i></div>
+                    <div class="text-sm font-semibold text-white">Dev Web</div>
+                    <div class="text-[11px]" style="color:var(--text-muted)">41 membres</div>
+                </div>
+                <div class="fade-up fade-up-d3 feature-card glass-dark rounded-xl p-4 hover:border-rose-500/20 transition-all duration-500 cursor-pointer">
+                    <div class="feature-icon w-9 h-9 rounded-lg flex items-center justify-center mb-3" style="background:rgba(251,113,133,0.08);border:1px solid rgba(251,113,133,0.15)"><i data-lucide="zap" class="w-4 h-4 text-rose-400"></i></div>
+                    <div class="text-sm font-semibold text-white">Balle Rapide</div>
+                    <div class="text-[11px]" style="color:var(--text-muted)">25 membres</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chatbot -->
+<div class="fixed bottom-5 right-5 lg:bottom-6 lg:right-6 z-[999]">
+    <div id="botPanel" class="bot-panel">
+        <div class="px-5 py-4 flex items-center justify-between flex-shrink-0" style="border-bottom:1px solid var(--border-neon)">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,var(--neon),#00B87D);box-shadow:0 4px 16px rgba(0,229,160,0.2)">
+                    <svg width="20" height="20" viewBox="0 0 120 120" fill="none"><path d="M32 30 h36 a22 22 0 0 1 0 44 h-36" stroke="#0a0a0f" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M50 74 h30" stroke="#0a0a0f" stroke-width="10" stroke-linecap="round"/><circle cx="88" cy="88" r="7" fill="#0a0a0f" opacity="0.5"/><circle cx="88" cy="88" r="3.5" fill="#0a0a0f"/></svg>
+                </div>
+                <div><div class="text-sm font-semibold text-white">Assistant CJG</div><div class="flex items-center gap-1.5 text-[11px]" style="color:var(--neon)"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full pulse-online"></span>En ligne</div></div>
+            </div>
+            <button id="botClose" class="p-1.5 rounded-lg hover:bg-white/5 transition-colors"><i data-lucide="x" class="w-4 h-4" style="color:var(--text-muted)"></i></button>
+        </div>
+        <div id="botMessages" class="flex-1 overflow-y-auto scroll-dark px-5 py-4 space-y-4" style="min-height:0"></div>
+        <div id="botSuggestions" class="px-5 pb-3 flex-shrink-0"><div id="suggestionsWrap" class="flex flex-wrap gap-2"></div></div>
+        <div class="px-4 py-3 flex-shrink-0" style="border-top:1px solid var(--border)">
+            <div class="flex items-center gap-2 input-dark rounded-xl px-3.5 py-2.5">
+                <input id="botInput" type="text" placeholder="Posez votre question..." class="flex-1 bg-transparent outline-none text-sm text-white" style="color:var(--text)">
+                <button id="botSend" class="flex-shrink-0 p-1.5 rounded-lg transition-colors disabled:opacity-20 disabled:cursor-not-allowed" style="background:var(--neon);color:#0a0a0f" disabled><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+            </div>
+            <div class="text-center mt-1.5"><span class="text-[10px]" style="color:var(--text-muted)">Complexe Jeunes Gabès — Assistant IA</span></div>
+        </div>
+    </div>
+    <button id="botToggle" class="bot-toggle flex items-center justify-center ml-auto">
+        <i data-lucide="message-circle" class="w-5 h-5 text-[#0a0a0f]" id="botIconOpen"></i>
+        <i data-lucide="x" class="w-5 h-5 text-[#0a0a0f] hidden" id="botIconClose"></i>
+        <span class="badge">1</span>
+    </button>
+</div>
+
+<!-- THREE.JS 3D BACKGROUND -->
+<script>
+(function(){
+    const canvas=document.getElementById('bg3d');
+    const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,100);
+    camera.position.z=30;
+    const ambLight=new THREE.AmbientLight(0x111122,0.5);scene.add(ambLight);
+    const ptLight1=new THREE.PointLight(0x00E5A0,2,60);ptLight1.position.set(15,10,15);scene.add(ptLight1);
+    const ptLight2=new THREE.PointLight(0xFFB800,1.5,50);ptLight2.position.set(-15,-8,10);scene.add(ptLight2);
+    const ptLight3=new THREE.PointLight(0x6366F1,1,40);ptLight3.position.set(0,15,-10);scene.add(ptLight3);
+    const matNeon=new THREE.MeshPhongMaterial({color:0x00E5A0,transparent:true,opacity:0.15,wireframe:true});
+    const matGold=new THREE.MeshPhongMaterial({color:0xFFB800,transparent:true,opacity:0.12,wireframe:true});
+    const matIndigo=new THREE.MeshPhongMaterial({color:0x6366F1,transparent:true,opacity:0.1,wireframe:true});
+    const matSolid=new THREE.MeshPhongMaterial({color:0x00E5A0,transparent:true,opacity:0.04,flatShading:true});
+    const matSolidGold=new THREE.MeshPhongMaterial({color:0xFFB800,transparent:true,opacity:0.03,flatShading:true});
+    const shapes=[];
+    function addShape(geo,mat,pos,speed,rotSpeed){const mesh=new THREE.Mesh(geo,mat);mesh.position.set(pos[0],pos[1],pos[2]);mesh.userData={speed,rotSpeed:rotSpeed||{x:0.003,y:0.005,z:0.002},basePos:[...pos]};scene.add(mesh);shapes.push(mesh);return mesh}
+    addShape(new THREE.IcosahedronGeometry(3,0),matNeon,[-12,6,-5],0.4,{x:0.004,y:0.006,z:0.003});
+    addShape(new THREE.IcosahedronGeometry(5,1),matGold,[14,-4,-8],0.3,{x:0.002,y:0.003,z:0.001});
+    addShape(new THREE.IcosahedronGeometry(2,0),matIndigo,[8,10,5],0.5,{x:0.005,y:0.008,z:0.004});
+    addShape(new THREE.OctahedronGeometry(2.5,0),matNeon,[-8,-8,3],0.35,{x:0.006,y:0.004,z:0.005});
+    addShape(new THREE.OctahedronGeometry(4,0),matGold,[0,-12,-3],0.25,{x:0.003,y:0.002,z:0.004});
+    addShape(new THREE.OctahedronGeometry(1.8,0),matIndigo,[-15,0,8],0.45,{x:0.007,y:0.005,z:0.006});
+    addShape(new THREE.TorusKnotGeometry(2,0.6,64,8,2,3),matNeon,[10,8,-6],0.2,{x:0.002,y:0.003,z:0.001});
+    addShape(new THREE.TorusKnotGeometry(1.5,0.4,64,8,3,5),matGold,[-6,12,-4],0.3,{x:0.003,y:0.004,z:0.002});
+    addShape(new THREE.DodecahedronGeometry(3.5,0),matSolid,[-4,-6,-10],0.2,{x:0.001,y:0.002,z:0.001});
+    addShape(new THREE.DodecahedronGeometry(2,0),matSolidGold,[16,2,0],0.35,{x:0.003,y:0.004,z:0.002});
+    addShape(new THREE.TorusGeometry(3,0.8,16,32),matNeon,[0,0,-12],0.15,{x:0.004,y:0.006,z:0.002});
+    addShape(new THREE.TorusGeometry(2,0.5,16,32),matIndigo,[-14,-10,-6],0.4,{x:0.005,y:0.003,z:0.004});
+    for(let i=0;i<15;i++){const s=0.3+Math.random()*0.8;const geo=new THREE.BoxGeometry(s,s,s);const m=[matNeon,matGold,matIndigo][Math.floor(Math.random()*3)];addShape(geo,m,[(Math.random()-0.5)*40,(Math.random()-0.5)*30,-5-Math.random()*20],0.1+Math.random()*0.3,{x:Math.random()*0.01,y:Math.random()*0.01,z:Math.random()*0.01})}
+    const particleCount=200;const pGeo=new THREE.BufferGeometry();const pPos=new Float32Array(particleCount*3);
+    for(let i=0;i<particleCount;i++){pPos[i*3]=(Math.random()-0.5)*60;pPos[i*3+1]=(Math.random()-0.5)*40;pPos[i*3+2]=(Math.random()-0.5)*40-10}
+    pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+    const pMat=new THREE.PointsMaterial({color:0x00E5A0,size:0.08,transparent:true,opacity:0.4});
+    const particles=new THREE.Points(pGeo,pMat);scene.add(particles);
+    let mouseX=0,mouseY=0;
+    document.addEventListener('mousemove',e=>{mouseX=(e.clientX/window.innerWidth-0.5)*2;mouseY=(e.clientY/window.innerHeight-0.5)*2});
+    const clock=new THREE.Clock();
+    function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();
+        shapes.forEach(s=>{s.rotation.x+=s.userData.rotSpeed.x;s.rotation.y+=s.userData.rotSpeed.y;s.rotation.z+=s.userData.rotSpeed.z;const bp=s.userData.basePos;s.position.y=bp[1]+Math.sin(t*s.userData.speed)*2;s.position.x=bp[0]+Math.cos(t*s.userData.speed*0.7)*0.8});
+        particles.rotation.y=t*0.02;particles.rotation.x=Math.sin(t*0.01)*0.1;
+        camera.position.x+=(mouseX*3-camera.position.x)*0.02;camera.position.y+=(-mouseY*2-camera.position.y)*0.02;camera.lookAt(0,0,0);
+        ptLight1.position.x=Math.sin(t*0.3)*18;ptLight1.position.y=Math.cos(t*0.2)*12;
+        ptLight2.position.x=Math.cos(t*0.25)*15;ptLight2.position.y=Math.sin(t*0.35)*10;
+        renderer.render(scene,camera)}
+    animate();
+    window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight)});
+})();
+</script>
+
+<!-- CHATBOT LOGIC -->
+<script>
+const botK={
+    greeting:["Salut ! 👋 Assistant du **Complexe Jeunes Gabès**. Je peux renseigner sur nos clubs, horaires, événements… Que voulez-vous savoir ?"],
+    cyclisme:["🚴 **34 membres** au club Cyclisme. Sorties sam 8h, entraînements mer soir. Tous niveaux !"],
+    echecs:["♟️ **28 membres** Échecs. Présentiel mar/jeu soir, tournoi mensuel ELO. Débutants bienvenus !"],
+    dev:["💻 **41 membres** Dev Web. Live coding lun/jeu, projets collaboratifs. Stack : React, Next.js, Tailwind."],
+    balle:["⚡ **25 membres** Balle Rapide. Lun/mer/ven 18h-20h. Record : 142 km/h ! Découverte gratuite."],
+    horaires:["🗓️ **Lun/Mer/Ven 18-20h** — Balle Rapide\n**Mar/Jeu 19-21h** — Échecs\n**Mer 19-21h** — Dev Web\n**Sam 8h** — Cyclisme\n**Dim** — Événements"],
+    rejoindre:["1️⃣ Cliquez **« Se connecter »**\n2️⃣ Inscrivez-vous email ou Facebook\n3️⃣ Accès immédiat chat + espaces\n4️⃣ Accueil sous 24h\n\n**Gratuit et sans engagement** !"],
+    evenements:["📅 **Sam 8h** — Vélo 50km El Hamma\n**Ven 20h** — Tournoi échecs blitz\n**Ce soir 20h** — Live coding CSS\n**Dim 10h** — Découverte balle rapide"],
+    membre:["**128 membres**, 4 clubs, **12 en ligne** maintenant. +40% en 3 mois ! 🎉"],
+    gabe:["🌴 Gabès, oasis maritime unique — mer, montagne, palmiers. Le CJG rassemble la jeunesse gabésienne !"],
+    fallback:["Essayez : cyclisme, échecs, dev web, balle rapide, horaires, événements, rejoindre, Gabès…","Je peux aider sur :\n🚴 Cyclisme\n♟️ Échecs\n💻 Dev Web\n⚡ Balle Rapide\n🗓️ Horaires\n📅 Événements\n🤝 Rejoindre\n🌴 Gabès"]
+};
+function gBR(t){const s=t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");if(/^(salut|bonjour|hey|coucou)/.test(s))return r(botK.greeting);if(/velo|cycl|bike|sortie/.test(s))return r(botK.cyclisme);if(/echec|blitz|tournoi/.test(s))return r(botK.echecs);if(/dev|code|web|programm/.test(s))return r(botK.dev);if(/balle|rapide|lancer|vitesse/.test(s))return r(botK.balle);if(/horaire|planning|quand/.test(s))return r(botK.horaires);if(/rejoindre|inscrire|adherer/.test(s))return r(botK.rejoindre);if(/evenement|agenda|prochain/.test(s))return r(botK.evenements);if(/combien|membre|nombre/.test(s))return r(botK.membre);if(/gabe|ville|oasis/.test(s))return r(botK.gabe);if(/merci|super|cool/.test(s))return "Avec plaisir ! 😊";if(/au revoir|bye/.test(s))return "À bientôt au CJG ! 🙌";return r(botK.fallback)}
+function r(a){return a[Math.floor(Math.random()*a.length)]}
+
+const botPanel=document.getElementById('botPanel'),botToggle=document.getElementById('botToggle'),botClose=document.getElementById('botClose'),botInput=document.getElementById('botInput'),botSend=document.getElementById('botSend'),botMessages=document.getElementById('botMessages'),sugWrap=document.getElementById('suggestionsWrap'),botIO=document.getElementById('botIconOpen'),botIC=document.getElementById('botIconClose');
+let botOpen=false;
+const iSug=[{label:"🚴 Cyclisme",q:"Parle-moi du club cyclisme"},{label:"♟️ Échecs",q:"Club d'échecs ?"},{label:"💻 Dev Web",q:"Projets dev web ?"},{label:"⚡ Balle Rapide",q:"Balle rapide ?"},{label:"📅 Événements",q:"Événements à venir ?"},{label:"🌴 Gabès",q:"Parle-moi de Gabès"}];
+
+function toggleBot(){botOpen=!botOpen;botPanel.classList.toggle('open',botOpen);botToggle.classList.toggle('active',botOpen);botIO.classList.toggle('hidden',botOpen);botIC.classList.toggle('hidden',!botOpen);if(botOpen&&!botMessages.children.length)initBot();if(botOpen)setTimeout(()=>botInput.focus(),400)}
+botToggle.addEventListener('click',toggleBot);botClose.addEventListener('click',toggleBot);
+
+function initBot(){addBM("Salut ! 👋 Assistant du **Complexe Jeunes Gabès**. Comment puis-je vous aider ?",'bot');showS(iSug)}
+function showS(s){sugWrap.innerHTML=s.map(x=>`<button class="bot-sug text-xs font-medium px-3 py-1.5 rounded-full" data-q="${x.q}">${x.label}</button>`).join('');sugWrap.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{botInput.value=b.dataset.q;hBS()}))}
+function hideS(){sugWrap.innerHTML=''}
+
+function addBM(text,who){
+    const d=document.createElement('div');d.className=`chat-message flex ${who==='user'?'justify-end':'justify-start'}`;
+    const f=text.replace(/\*\*(.*?)\*\*/g,'<strong class="font-semibold" style="color:var(--neon)">$1</strong>').replace(/\n/g,'<br>');
+    if(who==='bot'){d.innerHTML=`<div class="flex items-start gap-2.5 max-w-[88%]"><div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style="background:linear-gradient(135deg,var(--neon),#00B87D)"><svg width="14" height="14" viewBox="0 0 120 120" fill="none"><path d="M32 30 h36 a22 22 0 0 1 0 44 h-36" stroke="#0a0a0f" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M50 74 h30" stroke="#0a0a0f" stroke-width="10" stroke-linecap="round"/></svg></div><div class="bot-msg-bot rounded-2xl rounded-tl-md px-4 py-2.5"><p class="text-sm font-light leading-relaxed" style="color:var(--text-dim)">${f}</p></div></div>`}
+    else{d.innerHTML=`<div class="max-w-[85%]"><div class="bot-msg-user rounded-2xl rounded-tr-md px-4 py-2.5"><p class="text-sm font-light leading-relaxed">${f}</p></div></div>`}
+    botMessages.appendChild(d);botMessages.scrollTop=botMessages.scrollHeight;
+}
+function showBT(){const d=document.createElement('div');d.id='bTI';d.className='chat-message flex justify-start';d.innerHTML=`<div class="flex items-start gap-2.5"><div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style="background:linear-gradient(135deg,var(--neon),#00B87D)"><svg width="14" height="14" viewBox="0 0 120 120" fill="none"><path d="M32 30 h36 a22 22 0 0 1 0 44 h-36" stroke="#0a0a0f" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M50 74 h30" stroke="#0a0a0f" stroke-width="10" stroke-linecap="round"/></svg></div><div class="bot-msg-bot rounded-2xl rounded-tl-md px-4 py-3"><div class="flex gap-1.5"><div class="w-2 h-2 rounded-full typing-dot" style="background:var(--neon);opacity:0.5"></div><div class="w-2 h-2 rounded-full typing-dot" style="background:var(--neon);opacity:0.5"></div><div class="w-2 h-2 rounded-full typing-dot" style="background:var(--neon);opacity:0.5"></div></div></div></div>`;botMessages.appendChild(d);botMessages.scrollTop=botMessages.scrollHeight}
+function hideBT(){const e=document.getElementById('bTI');if(e)e.remove()}
+
+function hBS(){const t=botInput.value.trim();if(!t)return;hideS();addBM(t,'user');botInput.value='';botSend.disabled=true;showBT();setTimeout(()=>{hideBT();addBM(gBR(t),'bot');const s=t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");if(/velo|cycl/.test(s))showS([{label:"Prochaine sortie ?",q:"Prochaine sortie vélo ?"},{label:"Niveaux",q:"Niveaux club cyclisme ?"}]);else if(/echec/.test(s))showS([{label:"Tournoi ?",q:"Prochain tournoi ?"},{label:"Débutant",q:"Débutant échecs"}]);else if(/dev|code/.test(s))showS([{label:"Ce soir ?",q:"Live coding ce soir ?"},{label:"Projets",q:"Projets en cours ?"}]);else showS(iSug.slice(0,4))},600+Math.random()*1000)}
+botInput.addEventListener('input',()=>{botSend.disabled=!botInput.value.trim()});
+botInput.addEventListener('keydown',e=>{if(e.key==='Enter')hBS()});
+botSend.addEventListener('click',hBS);
+
+function initAnims(){const o=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('visible')})},{threshold:0.1});document.querySelectorAll('.fade-up').forEach(x=>o.observe(x))}
+
+document.addEventListener('DOMContentLoaded',()=>{lucide.createIcons();initAnims()});
+</script>
+</body>
+</html>
